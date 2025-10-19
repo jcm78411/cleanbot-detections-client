@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CleanBot Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="index.css" />
+  </head>
+  <body class="bg-gray-100 min-h-screen p-6">
+    <div class="text-center mb-6">
+      <h1 class="text-3xl font-bold text-green-700">
+        Historial De Detecciones CleanBot
+      </h1>
+    </div>
+
+    <div class="flex justify-between items-center mb-4">
+      <button
+        id="refreshBtn"
+        class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
+      >
+        Actualizar
+      </button>
+      <p id="status" class="text-gray-500">Esperando datos...</p>
+    </div>
+
+    <div
+      id="notification"
+      class="hidden bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded mb-4 transition-opacity duration-500"
+    >
+      🔔 Nuevos registros detectados!
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <canvas id="chartMateriales" class="bg-white p-4 rounded shadow"></canvas>
+      <div class="w-full md:w-[700px] h-[350px] mx-auto my-6">
+        <canvas id="chartFrecuencia"></canvas>
+      </div>
+    </div>
+
+    <div class="mt-8 bg-white rounded shadow p-4">
+      <div class="text-center mb-6">
+        <h2 class="text-xl font-semibold mt-2">🧾 Últimas detecciones</h2>
+      </div>
+      <table class="w-full text-sm text-left">
+        <thead class="text-gray-700 border-b">
+          <tr>
+            <th>ID</th>
+            <th>Material</th>
+            <th>Frecuencia</th>
+            <th>Frecuencia Roja</th>
+            <th>Frecuencia Verde</th>
+            <th>Frecuencia Azul</th>
+            <th>Fecha y hora</th>
+          </tr>
+        </thead>
+        <tbody id="tablaDetecciones"></tbody>
+      </table>
+    </div>
+    <script src="renderer.js"></script>
+  </body>
+</html>

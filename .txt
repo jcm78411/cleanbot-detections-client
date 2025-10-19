@@ -1,0 +1,237 @@
+    <!-- <footer class="mt-8" style="display: flex">
+      <div class="bg-white rounded shadow p-4">
+        <div id="filters">
+          <h3 class="text-lg font-semibold mb-3">Filtrar detecciones</h3>
+
+        <form
+          id="filterForm"
+          class="flex flex-col md:flex-row md:items-center gap-3"
+        >
+          <select
+            id="filterMaterial"
+            class="border rounded px-3 py-2 bg-white text-sm"
+          >
+            <option value="">Todos los materiales</option>
+          </select>
+
+          <div class="flex gap-2 items-center">
+            <label class="text-sm text-gray-600">Desde</label>
+            <input
+              id="fromDate"
+              type="date"
+              class="border rounded px-2 py-1 text-sm"
+            />
+            <label class="text-sm text-gray-600">Hasta</label>
+            <input
+              id="toDate"
+              type="date"
+              class="border rounded px-2 py-1 text-sm"
+            />
+          </div>
+
+          <select
+            id="filterFrequency"
+            class="border rounded px-3 py-2 bg-white text-sm"
+          >
+            <option value="">Todas las frecuencias</option>
+            <option value="low">Baja</option>
+            <option value="medium">Media</option>
+            <option value="high">Alta</option>
+          </select>
+
+          <div class="flex items-center gap-2 text-sm">
+            <label class="inline-flex items-center gap-1">
+              <input
+                id="filterRed"
+                type="checkbox"
+                checked
+                class="form-checkbox"
+              />
+              Rojo
+            </label>
+            <label class="inline-flex items-center gap-1">
+              <input
+                id="filterGreen"
+                type="checkbox"
+                checked
+                class="form-checkbox"
+              />
+              Verde
+            </label>
+            <label class="inline-flex items-center gap-1">
+              <input
+                id="filterBlue"
+                type="checkbox"
+                checked
+                class="form-checkbox"
+              />
+              Azul
+            </label>
+          </div>
+        </div>
+
+          <div id="buttons" >
+            <div class="ml-auto flex gap-2">
+              <button
+                id="applyFilters"
+                type="button"
+                class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+              >
+                Aplicar
+              </button>
+              <button
+                id="resetFilters"
+                type="button"
+                class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300"
+              >
+                Restablecer
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </footer> -->
+
+
+// Variables globales
+let deteccionesOriginal = [];
+
+// === Llenar el select de materiales ===
+function llenarSelectMateriales(datos) {
+  const select = document.getElementById("filterMaterial");
+  select.innerHTML = '<option value="">Todos</option>';
+  const materiales = [...new Set(datos.map((d) => d.material))];
+  materiales.forEach((mat) => {
+    const option = document.createElement("option");
+    option.value = mat;
+    option.textContent = mat;
+    select.appendChild(option);
+  });
+}
+
+// === Aplicar filtros ===
+function aplicarFiltros() {
+  let filtrados = [...deteccionesOriginal];
+
+  const matSel = document.getElementById("filterMaterial").value;
+  const desde = document.getElementById("fromDate").value;
+  const hasta = document.getElementById("toDate").value;
+  const freq = document.getElementById("filterFrequency").value;
+
+  if (matSel) filtrados = filtrados.filter((d) => d.material === matSel);
+
+  if (desde)
+    filtrados = filtrados.filter((d) => new Date(d.fecha_hora) >= new Date(desde));
+  if (hasta)
+    filtrados = filtrados.filter((d) => new Date(d.fecha_hora) <= new Date(hasta));
+
+  if (freq) {
+    filtrados = filtrados.filter((d) => {
+      if (freq === "low") return d.frecuencia < 10000;
+      if (freq === "medium") return d.frecuencia >= 10000 && d.frecuencia < 20000;
+      if (freq === "high") return d.frecuencia >= 20000;
+    });
+  }
+
+  actualizarGraficos(filtrados);
+}
+
+// === Restablecer filtros ===
+function resetearFiltros() {
+  document.getElementById("filterMaterial").value = "";
+  document.getElementById("fromDate").value = "";
+  document.getElementById("toDate").value = "";
+  document.getElementById("filterFrequency").value = "";
+  document.getElementById("filterRed").checked = true;
+  document.getElementById("filterGreen").checked = true;
+  document.getElementById("filterBlue").checked = true;
+
+  actualizarGraficos(deteccionesOriginal);
+}
+
+// === Actualizar gráficos ===
+function actualizarGraficos(datos) {
+  const ctxFrecuencia = document.getElementById("chartFrecuencia").getContext("2d");
+  const ctxMateriales = document.getElementById("chartMateriales").getContext("2d");
+
+  const labels = datos.map((d) => d.fecha_hora);
+  const frecR = datos.map((d) => d.frec_roja);
+  const frecG = datos.map((d) => d.frec_verde);
+  const frecB = datos.map((d) => d.frec_azul);
+  const frecProm = datos.map((d) => d.frecuencia);
+
+  const mostrarRojo = document.getElementById("filterRed").checked;
+  const mostrarVerde = document.getElementById("filterGreen").checked;
+  const mostrarAzul = document.getElementById("filterBlue").checked;
+
+  // === Actualizar gráfico de frecuencias ===
+  if (chartFrecuencia) chartFrecuencia.destroy();
+
+  chartFrecuencia = new Chart(ctxFrecuencia, {
+    type: "line",
+    data: {
+      labels,
+      datasets: [
+        ...(mostrarRojo
+          ? [{ label: "frec_roja", data: frecR, borderColor: "#ef4444", fill: false }]
+          : []),
+        ...(mostrarVerde
+          ? [{ label: "frec_verde", data: frecG, borderColor: "#22c55e", fill: false }]
+          : []),
+        ...(mostrarAzul
+          ? [{ label: "frec_azul", data: frecB, borderColor: "#3b82f6", fill: false }]
+          : []),
+        {
+          label: "frec_prom",
+          data: frecProm,
+          borderColor: "#facc15",
+          borderDash: [5, 5],
+          fill: false,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { position: "bottom" } },
+      scales: {
+        y: { beginAtZero: true, title: { display: true, text: "Frecuencia (Hz)" } },
+        x: { title: { display: true, text: "Fecha y hora" } },
+      },
+    },
+  });
+
+  // === Actualizar gráfico circular de materiales ===
+  if (chartMateriales) chartMateriales.destroy();
+
+  const materiales = {};
+  datos.forEach((d) => {
+    materiales[d.material] = (materiales[d.material] || 0) + 1;
+  });
+
+  chartMateriales = new Chart(ctxMateriales, {
+    type: "pie",
+    data: {
+      labels: Object.keys(materiales),
+      datasets: [
+        {
+          data: Object.values(materiales),
+          backgroundColor: ["#3b82f6", "#22c55e", "#ef4444", "#facc15", "#9333ea"],
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { position: "bottom" } },
+    },
+  });
+}
+
+// === Listeners ===
+document.getElementById("applyFilters").addEventListener("click", aplicarFiltros);
+document.getElementById("resetFilters").addEventListener("click", resetearFiltros);
+
+document.getElementById("filterRed").addEventListener("change", aplicarFiltros);
+document.getElementById("filterGreen").addEventListener("change", aplicarFiltros);
+document.getElementById("filterBlue").addEventListener("change", aplicarFiltros);
