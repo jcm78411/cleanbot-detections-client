@@ -2,7 +2,7 @@
   "name": "monitor-detecciones",
   "productName": "monitor-detecciones",
   "version": "1.0.0",
-  "description": "My Electron application description",
+  "description": "Cliente para monitorear y guardar los datos de las detecciones en BD",
   "main": "src/index.js",
   "scripts": {
     "start": "electron-forge start",
