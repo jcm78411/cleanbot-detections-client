@@ -288,7 +288,7 @@ Ingeniero de Sistemas
 
 GitHub:
 
-:contentReference[oaicite:0]{index=0}
+:contentReference[[jcm78411](https://github.com/jcm78411)]
 
 ---
 
